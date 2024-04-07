@@ -10,17 +10,22 @@
 % ======================================================================
 function [x_b, t] = ToolBlockAudio(x, iBlockLength, iHopLength, f_s)
     
-    iNumBlocks = ceil(size(x, 1)/iHopLength );
+    % 预分配块的数量
+    iNumBlocks = ceil((size(x, 1) - iBlockLength)/iHopLength) + 1;
     
-    % time stamp vector
-    t = (0:(iNumBlocks-1)) * iHopLength / f_s + iBlockLength/(2*f_s);
+    % 每个块开始的时间戳向量
+    t = ((0:iNumBlocks-1) * iHopLength) / f_s;
     
-    % pad with zeros just to make sure it runs for weird inputs, too
-    xPadded = [x; zeros(iBlockLength+iHopLength, 1)];
+    % 添加零以确保最后一个块完整
+    iNumZerosToPad = iBlockLength + (iNumBlocks-1) * iHopLength - size(x, 1);
+    xPadded = [x; zeros(iNumZerosToPad, 1)];
  
+    % 预分配矩阵以保存所有块
     x_b = zeros(iNumBlocks, iBlockLength);
     
+    % 使用填充信号填充矩阵
     for n = 1:iNumBlocks
-        x_b(n,:) = xPadded((n-1)*iHopLength+1:(n-1)*iHopLength+iBlockLength);
+        iStart = (n-1)*iHopLength + 1;
+        x_b(n,:) = xPadded(iStart:iStart+iBlockLength-1);
     end
 end
